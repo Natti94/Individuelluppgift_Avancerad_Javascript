@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getCsrfToken, registerUser } from "../../services/authService";
+import { getCsrfToken, registerUser } from "../../services";
 
 function Register() {
   const [username, setUsername] = useState("");

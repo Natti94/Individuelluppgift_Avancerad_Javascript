@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { loginUser } from "../../services/authService";
+import { loginUser, getCsrfToken } from "../../services";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -11,8 +11,8 @@ function Login() {
     e.preventDefault();
 
     try {
-      const jsonwebtoken = await loginUser();
-      await registerUser(username, password, jsonwebtoken);
+      const csrfToken = await getCsrfToken();
+      await loginUser(username, password, csrfToken);
       setSuccess(true);
     } catch (err) {
       setError(err.message);
@@ -51,3 +51,5 @@ function Login() {
     </div>
   );
 }
+
+export default Login;
