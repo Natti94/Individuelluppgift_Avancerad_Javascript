@@ -1,34 +1,63 @@
 import { useState, useEffect } from "react";
-import { getMessages } from "../../services";
+import { userMessages } from "../../services";
 
 function Chat() {
   const [userMessage, setUserMessage] = useState("");
-  const [allMessages, setAllMessages] = useState([]);
+  const [allConversations, setAllConversations] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  async function fetchMessages() {
+
+  async function fetchUserMessages() {
     try {
-      const messages = await getMessages();
-      setAllMessages(messages);
-    } catch (error) {
-      setError(error.message);
+      const messages = await userMessages();
+      setUserMessage(messages);
+      setSuccess(true);
+    } catch (err) {
+      setError("Failed to fetch messages. Please try again later.", err);
     }
   }
-
   useEffect(() => {
-    fetchMessages();
+    fetchUserMessages();
+  }, []);
+
+  async function fetchAllConversations() {
+    try {
+      const conversations = await userMessages();
+      setAllConversations(conversations);
+      setSuccess(true);
+    } catch (err) {
+      setError("Failed to fetch conversations. Please try again later.", err);
+    }
+  }
+  useEffect(() => {
+    fetchAllConversations();
   }, []);
 
   return (
-    <div>
+    <div className="chat-container">
       <h1>Chat</h1>
-      {error && <p>Error: {error}</p>}
-      {success && <p>Message sent successfully!</p>}
+      {error && <p className="error">{error}</p>}
+      {success && <p className="success">Messages fetched successfully!</p>}
       <div>
-        {allMessages.map((msg, index) => (
-          <div key={index}>{msg}</div>
-        ))}
+        <h2>Your Messages</h2>
+        <form onSubmit={(e) => e.preventDefault()}>
+          <textarea
+            value={userMessage}
+            onChange={(e) => setUserMessage(e.target.value)}
+            placeholder="Type your message here..."
+          />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+      <div>
+        <h2>All Conversations</h2>
+        <ul>
+          {allConversations.map((conversation, index) => (
+            <li key={index}>{conversation}</li>
+          ))}
+        </ul>
       </div>
     </div>
   );
 }
+export default Chat;

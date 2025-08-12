@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { loginUser, getCsrfToken } from "../../services";
+import { generateCsrf, loginUser } from "../../services";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   async function handleLogin(e) {
     e.preventDefault();
-
     try {
-      const csrfToken = await getCsrfToken();
+      const csrfToken = await generateCsrf();
       await loginUser(username, password, csrfToken);
-      setSuccess(true);
+      navigate("/chat");
     } catch (err) {
-      setError(err.message);
+      setError("Login failed. Please check your username and password.", err);
     }
   }
 
@@ -24,30 +24,28 @@ function Login() {
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
         <div>
-          <label htmlFor="username">Username:</label>
+          <label>Username:</label>
           <input
-            type="text"
-            id="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
         <div>
-          <label htmlFor="password">Password:</label>
+          <label>Password:</label>
           <input
             type="password"
-            id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
-
         <button type="submit">Login</button>
       </form>
       {error && <p className="error">{error}</p>}
-      {success && <p className="success">Login successful!</p>}
+      <p>
+        Don't have an account? <Link to="/register">Register here</Link>
+      </p>
     </div>
   );
 }
