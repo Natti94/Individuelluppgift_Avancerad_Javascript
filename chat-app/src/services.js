@@ -115,7 +115,7 @@ export async function postMessages(text, conversationId) {
 
 // HÄMTA ALLA MEDDELANDEN - GET
 
-export async function getMessages() {
+export async function getAllMessages() {
   const res = await fetch(
     `https://chatify-api.up.railway.app/messages
     )}`,
@@ -133,7 +133,7 @@ export async function getMessages() {
     return data.messages;
   }
 
-  await handleError(res, "Failed to fetch messages. Please try again.");
+  await handleError(res, "Failed to fetch message. Please try again.");
 }
 
 // HÄMTA ANVÄNDARES MEDDELANDEN MED KONVERSATIONS ID - GET

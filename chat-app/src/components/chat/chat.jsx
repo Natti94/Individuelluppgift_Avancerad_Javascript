@@ -13,47 +13,30 @@ function Chat() {
       await postMessages(userMessage);
       setUserMessage("");
       setSuccess(true);
-      fetchMessages();
     } catch (err) {
-      setError("Failed to send message. Please try again later.", err);
+      setError("Failed to send message. Please try again.", err);
     }
     setSuccess(false);
   }
 
-  async function fetchMessages() {
+  async function handleGetMessages(e) {
+    e.preventDefault();
     try {
-      const messages = await getUserMessages();
-      setUserMessage(messages);
+      await getUserMessages(userMessage);
+      setUserMessage("");
       setSuccess(true);
     } catch (err) {
-      setError("Failed to fetch messages. Please try again later.", err);
+      setError("Failed to fetch messages. Please try again.", err);
     }
+    setSuccess(false);
   }
-  useEffect(() => {
-    fetchMessages();
-  }, []);
-
-  async function fetchAllMessages() {
-    try {
-      const messages = await getAllMessages();
-      setAllConversations(messages);
-      setSuccess(true);
-    } catch (err) {
-      setError("Failed to fetch conversations. Please try again later.", err);
-    }
-  }
-  useEffect(() => {
-    fetchAllMessages();
-  }, []);
 
   return (
-    <div className="chat-container">
-      <h1>Chat</h1>
-      {error && <p className="error">{error}</p>}
-      {success && <p className="success">Messages fetched successfully!</p>}
-      <div>
+    <div>
+      <div className="chat-container">
+        <h1>Chat</h1>
         <hr />
-        <h4>Your Message:</h4>
+        <h4>Send a message:</h4>
         <form onSubmit={handleSendMessage}>
           <textarea
             value={userMessage}
@@ -62,23 +45,19 @@ function Chat() {
           />
           <button type="submit">Send</button>
         </form>
+        {success && <p className="success">Messages fetched successfully!</p>}
+        {error && <p className="error">{error}</p>}
       </div>
-      <div>
-        <h2>Your Conversations:</h2>
-        <h2>All Conversations</h2>
-        <ul>
-          {allConversations &&
-            allConversations.length > 0 &&
-            allConversations.map((conversation, index) => (
-              <li key={index}>{conversation}</li>
-            ))}
-
-          <button onClick={fetchAllConversations}>Get Conversations</button>
-        </ul>
-        <div>
-          {allConversations && allConversations.length === 0 && (
-            <p>No conversations found.</p>
-          )}
+      <div className="user-messages-container">
+        <h2>Your Messages</h2>
+        <button onClick={handleGetMessages}>Get Messages</button>
+        <div className="messages-list">
+          {allConversations.map((message, index) => (
+            <div key={index} className="message-item">
+              <p>{message.text}</p>
+              <span>{new Date(message.createdAt).toLocaleString()}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

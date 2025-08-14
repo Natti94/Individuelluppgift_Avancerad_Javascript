@@ -8,7 +8,4 @@ export default defineConfig({
     changeOrigin: true,
     secure: false,
   },
-  server: {
-    port: 3000,
-  },
 });

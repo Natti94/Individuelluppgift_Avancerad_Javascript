@@ -30,7 +30,7 @@ function Register() {
         <div>
           <label>Username:</label>
           <input
-            type="username"
+            type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required

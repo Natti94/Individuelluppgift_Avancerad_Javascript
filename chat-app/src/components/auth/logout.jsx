@@ -8,6 +8,7 @@ function Logout() {
     fetch("https://chatify-api.up.railway.app/auth/logout", {
       method: "POST",
       credentials: "include",
+      
     }).finally(() => {
       navigate("/register");
     });
