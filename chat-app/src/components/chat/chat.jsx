@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { userMessages } from "../../services";
+import { postMessages, getMessages, getConversations } from "../../services";
 
 function Chat() {
   const [userMessage, setUserMessage] = useState("");
@@ -7,9 +7,22 @@ function Chat() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
+  async function handleSendMessage(e) {
+    e.preventDefault();
+    try {
+      await postMessages(userMessage);
+      setUserMessage("");
+      setSuccess(true);
+      fetchUserMessages();
+    } catch (err) {
+      setError("Failed to send message. Please try again later.", err);
+    }
+    setSuccess(false);
+  }
+
   async function fetchUserMessages() {
     try {
-      const messages = await userMessages();
+      const messages = await getMessages();
       setUserMessage(messages);
       setSuccess(true);
     } catch (err) {
@@ -22,7 +35,7 @@ function Chat() {
 
   async function fetchAllConversations() {
     try {
-      const conversations = await userMessages();
+      const conversations = await getConversations();
       setAllConversations(conversations);
       setSuccess(true);
     } catch (err) {
@@ -39,8 +52,9 @@ function Chat() {
       {error && <p className="error">{error}</p>}
       {success && <p className="success">Messages fetched successfully!</p>}
       <div>
-        <h2>Your Messages</h2>
-        <form onSubmit={(e) => e.preventDefault()}>
+        <hr />
+        <h4>Your Message:</h4>
+        <form onSubmit={handleSendMessage}>
           <textarea
             value={userMessage}
             onChange={(e) => setUserMessage(e.target.value)}
@@ -52,10 +66,19 @@ function Chat() {
       <div>
         <h2>All Conversations</h2>
         <ul>
-          {allConversations.map((conversation, index) => (
-            <li key={index}>{conversation}</li>
-          ))}
+          {allConversations &&
+            allConversations.length > 0 &&
+            allConversations.map((conversation, index) => (
+              <li key={index}>{conversation}</li>
+            ))}
+
+          <button onClick={fetchAllConversations}>Get Conversations</button>
         </ul>
+        <div>
+          {allConversations && allConversations.length === 0 && (
+            <p>No conversations found.</p>
+          )}
+        </div>
       </div>
     </div>
   );

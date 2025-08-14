@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Register from "./components/auth/Register";
-import Login from "../src/components/auth/login";
-import Logout from "../src/components/auth/logout";
-import Chat from "./components/chat/chat";
+import Register from "./components/Auth/Register";
+import Login from "./components/Auth/Login";
+import Logout from "./components/Auth/Logout";
+import Chat from "./components/Chat/Chat";
+import SideNav from "./components/SideNav/SideNav";
 import "./App.css";
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/chat" element={<Chat />} />
+        <Route path="/sidenav" element={<SideNav to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
