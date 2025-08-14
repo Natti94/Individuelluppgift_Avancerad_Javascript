@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { postMessages, getMessages, getConversations } from "../../services";
+import { postMessages, getUserMessages, getAllMessages } from "../../services";
 
 function Chat() {
   const [userMessage, setUserMessage] = useState("");
@@ -13,16 +13,16 @@ function Chat() {
       await postMessages(userMessage);
       setUserMessage("");
       setSuccess(true);
-      fetchUserMessages();
+      fetchMessages();
     } catch (err) {
       setError("Failed to send message. Please try again later.", err);
     }
     setSuccess(false);
   }
 
-  async function fetchUserMessages() {
+  async function fetchMessages() {
     try {
-      const messages = await getMessages();
+      const messages = await getUserMessages();
       setUserMessage(messages);
       setSuccess(true);
     } catch (err) {
@@ -30,20 +30,20 @@ function Chat() {
     }
   }
   useEffect(() => {
-    fetchUserMessages();
+    fetchMessages();
   }, []);
 
-  async function fetchAllConversations() {
+  async function fetchAllMessages() {
     try {
-      const conversations = await getConversations();
-      setAllConversations(conversations);
+      const messages = await getAllMessages();
+      setAllConversations(messages);
       setSuccess(true);
     } catch (err) {
       setError("Failed to fetch conversations. Please try again later.", err);
     }
   }
   useEffect(() => {
-    fetchAllConversations();
+    fetchAllMessages();
   }, []);
 
   return (
@@ -64,6 +64,7 @@ function Chat() {
         </form>
       </div>
       <div>
+        <h2>Your Conversations:</h2>
         <h2>All Conversations</h2>
         <ul>
           {allConversations &&

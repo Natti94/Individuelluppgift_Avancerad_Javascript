@@ -96,7 +96,7 @@ export async function postMessages(text, conversationId) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${sessionStorage.getItem("token")}`,
     },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, conversationId }),
   });
 
   if (res.ok) {
@@ -113,16 +113,20 @@ export async function postMessages(text, conversationId) {
   await handleError(res, "Failed to send messages. Please try again.");
 }
 
-// HÄMTA INLOGGAD ANVÄNDARES MEDDELANDEN - GET
+// HÄMTA ALLA MEDDELANDEN - GET
 
 export async function getMessages() {
-  const res = await fetch("https://chatify-api.up.railway.app/messages", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-    },
-  });
+  const res = await fetch(
+    `https://chatify-api.up.railway.app/messages
+    )}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      },
+    }
+  );
 
   if (res.ok) {
     const data = await handleSuccess(res, "Messages fetched successfully");
@@ -132,8 +136,33 @@ export async function getMessages() {
   await handleError(res, "Failed to fetch messages. Please try again.");
 }
 
-export async function getConversations() {
-  const res = await fetch("https://chatify-api.up.railway.app/conversations", {
+// HÄMTA ANVÄNDARES MEDDELANDEN MED KONVERSATIONS ID - GET
+export async function getUserMessages() {
+  const res = await fetch(
+    `https://chatify-api.up.railway.app/messages/${localStorage.getItem(
+      "conversationId"
+    )}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      },
+    }
+  );
+
+  if (res.ok) {
+    const data = await handleSuccess(res, "Conversations fetched successfully");
+    return data.conversations;
+  } else {
+    console.warn("No conversations received in response.");
+  }
+
+  await handleError(res, "Failed to fetch conversations. Please try again.");
+}
+
+export async function getAllConversations() {
+  const res = await fetch("https://chatify-api.up.railway.app/messages", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -144,6 +173,8 @@ export async function getConversations() {
   if (res.ok) {
     const data = await handleSuccess(res, "Conversations fetched successfully");
     return data.conversations;
+  } else {
+    console.warn("No conversations received in response.");
   }
 
   await handleError(res, "Failed to fetch conversations. Please try again.");
