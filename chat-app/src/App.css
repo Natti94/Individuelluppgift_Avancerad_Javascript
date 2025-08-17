@@ -5,7 +5,6 @@
   justify-content: center;
   align-items: flex-start;
   width: 100vw;
-  min-height: 80vh;
   gap: 32px;
 }
 
@@ -14,17 +13,26 @@
   max-width: 480px;
 }
 
+h1,
+h2 {
+  text-align: center;
+}
+
 .user-messages-container {
   flex: 1 1 0;
   max-width: 400px;
+  min-width: 320px;
   align-self: flex-start;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
   box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
-  margin: 12px 0;
-  min-width: 320px;
+  margin: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
 }
 
 .messages-list {
@@ -40,6 +48,13 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  max-width: 90%;
+}
+
+.user-message-item {
+  background: var(--accent);
+  color: #fff;
+  align-self: flex-end;
 }
 
 .message-item p {
@@ -52,6 +67,7 @@
   color: var(--muted);
   align-self: flex-end;
 }
+
 :root {
   --bg: #f6f8fa;
   --card: #ffffff;
@@ -107,7 +123,8 @@ body,
 /* HEADER */
 .register-container h2,
 .login-container h2,
-.chat-container h1 {
+.chat-container h1,
+.chat-container h2 {
   margin: 0 0 12px 0;
   font-size: 20px;
   color: #111827;
@@ -259,6 +276,65 @@ button:active {
   border-bottom-right-radius: 16px;
   border-top-right-radius: 16px;
   border-top-left-radius: 16px;
+}
+
+
+/* HAMBURGAR IKON */
+.hamburger {
+  width: 35px;
+  height: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  z-index: 1100; 
+}
+
+.hamburger span {
+  height: 3px;
+  width: 100%;
+  background: #111827;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Sidomenyn */
+.side-nav {
+  position: fixed;
+  top: 0;
+  left: -240px;
+  width: 240px;
+  height: 100%;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  transition: left 0.3s ease;
+  z-index: 1000;
+}
+
+/* När menyn är öppen */
+.side-nav.open {
+  left: 0;
+}
+
+/* Logout-knappen i menyn */
+.side-nav button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: auto;
+  transition: background 0.2s ease;
+}
+
+.side-nav button:hover {
+  background: var(--accent-600);
 }
 
 /* SMÅ SKÄRMAR */

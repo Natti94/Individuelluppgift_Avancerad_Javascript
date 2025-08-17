@@ -84,30 +84,36 @@ export async function loginUser(username, password, csrfToken) {
   );
 }
 
+export async function logoutUser() {
+  try {
+    sessionStorage.removeItem("token");
+    return { success: true, message: "Logout successful" };
+  } catch {
+    return Promise.reject({
+      success: false,
+      message: "Logout failed. Please try again.",
+    });
+  }
+}
+
 // -----------------------------------------------------------------------
 
 // MEDDELANDEN
 // POSTA MEDDALNDEN SOM INLOGGAD ANVÄNDARE - POST
 
-export async function postMessages(text, conversationId) {
+export async function postMessages(text) {
   const res = await fetch("https://chatify-api.up.railway.app/messages", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${sessionStorage.getItem("token")}`,
     },
-    body: JSON.stringify({ text, conversationId }),
+    body: JSON.stringify({ text }),
   });
 
   if (res.ok) {
     const data = await handleSuccess(res, "Messages sent successfully");
-
-    if (data.conversationId) {
-      localStorage.setItem("conversationId", data.conversationId);
-    } else {
-      console.warn("No conversationId received in message response.");
-    }
-    return data.messages;
+    return data.postMessages;
   }
 
   await handleError(res, "Failed to send messages. Please try again.");
@@ -152,13 +158,13 @@ export async function getUserMessages() {
   );
 
   if (res.ok) {
-    const data = await handleSuccess(res, "Conversations fetched successfully");
-    return data.conversations;
+    const data = await handleSuccess(res, "Messages fetched successfully");
+    return data.messages;
   } else {
-    console.warn("No conversations received in response.");
+    console.warn("No messages received in response.");
   }
 
-  await handleError(res, "Failed to fetch conversations. Please try again.");
+  await handleError(res, "Failed to fetch messages. Please try again.");
 }
 
 export async function getAllConversations() {

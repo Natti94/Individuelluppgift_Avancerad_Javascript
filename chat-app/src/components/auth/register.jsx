@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { generateCsrf, registerUser } from "../../services";
+import { generateCsrf, registerUser } from "../../Services";
 import { Link, useNavigate } from "react-router-dom";
 
 function Register() {
@@ -15,11 +15,8 @@ function Register() {
       const csrfToken = await generateCsrf();
       await registerUser(username, password, email, csrfToken);
       navigate("/login");
-    } catch (err) {
-      setError(
-        "Registration failed. Please check your input and try again",
-        err
-      );
+    } catch {
+      setError("Registration failed. Please check your input and try again.");
     }
   }
 

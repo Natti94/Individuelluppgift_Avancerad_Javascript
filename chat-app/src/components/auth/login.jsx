@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { generateCsrf, loginUser } from "../../services";
+import { generateCsrf, loginUser } from "../../Services";
 import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
