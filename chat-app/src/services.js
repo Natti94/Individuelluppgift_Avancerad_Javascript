@@ -1,4 +1,3 @@
-// HJÄLPS-KOD
 async function handleError(res, defaultMessage) {
   let errMessage = `${defaultMessage} (Status ${res.status})`;
   try {
@@ -16,10 +15,7 @@ async function handleSuccess(res, successMessage) {
   console.log(`${successMessage} (Status ${res.status} ${res.statusText})`);
   return await res.json();
 }
-// -----------------------------------------------------------------------
 
-// GENERERA CSRF TOKEN, REGISTERING OCH INLOGGNING
-// GENERERA CSRF TOKEN - PATCH
 export async function generateCsrf() {
   const res = await fetch("https://chatify-api.up.railway.app/csrf", {
     method: "PATCH",
@@ -27,21 +23,32 @@ export async function generateCsrf() {
   });
   if (res.ok) {
     const data = await handleSuccess(res, "CSRF token fetched successfully");
+    if (data.csrfToken) {
+      localStorage.setItem("CSRFtoken", data.csrfToken);
+      return data.csrfToken;
+    } else {
+      console.log("No CSRF token received in response.");
+    }
     return data.csrfToken;
   }
+
   await handleError(
     res,
     "Security check failed. Please try again or refresh the page."
   );
 }
 
-// REGISTRERA ANVÄNDARE - POST
-export async function registerUser(username, password, email, csrfToken) {
+export async function registerUser(username, password, email) {
   const res = await fetch("https://chatify-api.up.railway.app/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ username, password, email, csrfToken }),
+    body: JSON.stringify({
+      username,
+      password,
+      email,
+      csrfToken: localStorage.getItem("CSRFtoken"),
+    }),
   });
   if (res.ok) {
     const data = await handleSuccess(
@@ -56,13 +63,16 @@ export async function registerUser(username, password, email, csrfToken) {
   );
 }
 
-// LOGGA IN ANVÄNDARE - POST
-export async function loginUser(username, password, csrfToken) {
+export async function loginUser(username, password) {
   const res = await fetch("https://chatify-api.up.railway.app/auth/token", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ username, password, csrfToken }),
+    body: JSON.stringify({
+      username,
+      password,
+      csrfToken: localStorage.getItem("CSRFtoken"),
+    }),
   });
 
   if (res.ok) {
@@ -84,31 +94,35 @@ export async function loginUser(username, password, csrfToken) {
   );
 }
 
-export async function logoutUser() {
+export function logoutUser() {
   try {
     sessionStorage.removeItem("token");
-    return { success: true, message: "Logout successful" };
-  } catch {
-    return Promise.reject({
+    console.log("Logout successful. Token removed from sessionStorage.");
+    return { success: true, message: "Logout successful", code: 0 };
+  } catch (err) {
+    console.log("Logout failed. Could not remove token from session storage.");
+    return {
       success: false,
       message: "Logout failed. Please try again.",
-    });
+      code: err?.code || 1,
+    };
   }
 }
 
-// -----------------------------------------------------------------------
-
-// MEDDELANDEN
-// POSTA MEDDALNDEN SOM INLOGGAD ANVÄNDARE - POST
-
-export async function postMessages(text) {
+export async function postMessages(
+  text,
+  conversationId = "314216cb-9ed3-4a57-93a1-e4b8b684ff15"
+) {
   const res = await fetch("https://chatify-api.up.railway.app/messages", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${sessionStorage.getItem("token")}`,
     },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({
+      text,
+      conversationId,
+    }),
   });
 
   if (res.ok) {
@@ -119,7 +133,28 @@ export async function postMessages(text) {
   await handleError(res, "Failed to send messages. Please try again.");
 }
 
-// HÄMTA ALLA MEDDELANDEN - GET
+export async function getUserMessages(
+  conversationId = "314216cb-9ed3-4a57-93a1-e4b8b684ff15"
+) {
+  const res = await fetch(
+    `https://chatify-api.up.railway.app/messages?conversationId=${conversationId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      },
+    }
+  );
+
+  if (res.ok) {
+    const data = await handleSuccess(res, "Messages fetched successfully");
+
+    return data.messages || data || [];
+  }
+
+  await handleError(res, "Failed to fetch messages. Please try again.");
+}
 
 export async function getAllMessages() {
   const res = await fetch(
@@ -142,31 +177,6 @@ export async function getAllMessages() {
   await handleError(res, "Failed to fetch message. Please try again.");
 }
 
-// HÄMTA ANVÄNDARES MEDDELANDEN MED KONVERSATIONS ID - GET
-export async function getUserMessages() {
-  const res = await fetch(
-    `https://chatify-api.up.railway.app/messages/${localStorage.getItem(
-      "conversationId"
-    )}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-      },
-    }
-  );
-
-  if (res.ok) {
-    const data = await handleSuccess(res, "Messages fetched successfully");
-    return data.messages;
-  } else {
-    console.warn("No messages received in response.");
-  }
-
-  await handleError(res, "Failed to fetch messages. Please try again.");
-}
-
 export async function getAllConversations() {
   const res = await fetch("https://chatify-api.up.railway.app/messages", {
     method: "GET",
@@ -185,4 +195,3 @@ export async function getAllConversations() {
 
   await handleError(res, "Failed to fetch conversations. Please try again.");
 }
-//----------------------------------------------------------------------

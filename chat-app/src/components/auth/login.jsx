@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { generateCsrf, loginUser } from "../../Services";
+import { loginUser } from "../../Services";
 import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
@@ -11,8 +11,7 @@ function Login() {
   async function handleLogin(e) {
     e.preventDefault();
     try {
-      const csrfToken = await generateCsrf();
-      await loginUser(username, password, csrfToken);
+      await loginUser(username, password);
       navigate("/chat");
     } catch (err) {
       setError("Login failed. Please check your username and password.", err);
@@ -21,7 +20,7 @@ function Login() {
 
   return (
     <div className="login-container">
-      <h2>Login</h2>
+      <h1>Login</h1>
       <form onSubmit={handleLogin}>
         <div>
           <label>Username:</label>

@@ -17,26 +17,22 @@ function Chat() {
       setSendMessage("");
       setSuccessSendMessage(true);
       setErrorSendMessage(null);
-      setTimeout(() => setSuccessSendMessage(false), 2000);
     } catch {
       setErrorSendMessage("Failed to send message. Please try again.");
       setSuccessSendMessage(false);
-      setTimeout(() => setErrorSendMessage(null), 2000);
     }
   }
 
   async function handleGetMessages(e) {
     e.preventDefault();
     try {
-      await getUserMessages(userMessages);
-      setUserMessages([]);
+      const messages = await getUserMessages();
+      setUserMessages(messages || []);
       setSuccessGetMessages(true);
       setErrorGetMessages(null);
-      setTimeout(() => setSuccessGetMessages(false), 2000);
     } catch {
       setErrorGetMessages("Failed to fetch messages. Please try again.");
       setSuccessGetMessages(false);
-      setTimeout(() => setErrorGetMessages(null), 2000);
     }
   }
 
@@ -44,7 +40,7 @@ function Chat() {
     <div className="chat-page-root">
       <div className="chat-container">
         <h1>Chat</h1>
-        <h4>Send a message:</h4>
+        <p>Send a message:</p>
         <form onSubmit={handleSendMessage}>
           <textarea
             value={sendMessage}
@@ -57,26 +53,31 @@ function Chat() {
           )}
           {errorSendMessage && <p className="error">{errorSendMessage}</p>}
         </form>
-        <hr />
-        <div style={{ marginTop: 32 }}>
-          <h4>Message history</h4>
-          <button onClick={handleGetMessages}>Show</button>
-          <div className="messages-list">
-            {userMessages.map((message, index) => (
-              <div key={index} className="message-item user-message-item">
-                <p>{message.text}</p>
-                <span>{new Date(message.createdAt).toLocaleString()}</span>
-              </div>
-            ))}
-            {successGetMessages && (
-              <p className="success">Messages fetched successfully!</p>
-            )}
-            {errorGetMessages && <p className="error">{errorGetMessages}</p>}
-          </div>
-        </div>
       </div>
-        <SideNav />
+      <div className="user-messages-container">
+        <h1>Messages</h1>
+        <button onClick={handleGetMessages}>Show</button>
+        <ul className="messages-list">
+          {(userMessages || []).map((message, index) => (
+            <li
+              key={index}
+              className={message.isUser ? "user-message" : "other-message"}
+            >
+              <p>{message.text}</p>
+              <span>{new Date(message.createdAt).toLocaleString()}</span>
+              <hr />
+            </li>
+          ))}
+        </ul>
+        {successGetMessages && (
+          <p className="success">Messages fetched successfully!</p>
+        )}
+        {errorGetMessages && <p className="error">{errorGetMessages}</p>}
+      </div>
+
+      <SideNav />
     </div>
   );
 }
+
 export default Chat;
