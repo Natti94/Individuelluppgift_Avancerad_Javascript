@@ -17,21 +17,21 @@ async function handleSuccess(res, successMessage) {
 }
 
 export async function generateCsrf() {
+  // Always fetch a new CSRF token and set it in localStorage
   const res = await fetch("https://chatify-api.up.railway.app/csrf", {
     method: "PATCH",
     credentials: "include",
   });
   if (res.ok) {
     const data = await handleSuccess(res, "CSRF token fetched successfully");
-    if (data.csrfToken) {
-      localStorage.setItem("CSRFtoken", data.csrfToken);
+    if (data?.csrfToken) {
+      localStorage.setItem("csrfToken", data.csrfToken);
       return data.csrfToken;
     } else {
       console.log("No CSRF token received in response.");
+      return null;
     }
-    return data.csrfToken;
   }
-
   await handleError(
     res,
     "Security check failed. Please try again or refresh the page."
@@ -39,6 +39,10 @@ export async function generateCsrf() {
 }
 
 export async function registerUser(username, password, email) {
+  let csrfToken = localStorage.getItem("csrfToken");
+  if (!csrfToken) {
+    csrfToken = await generateCsrf();
+  }
   const res = await fetch("https://chatify-api.up.railway.app/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -47,7 +51,7 @@ export async function registerUser(username, password, email) {
       username,
       password,
       email,
-      csrfToken: localStorage.getItem("CSRFtoken"),
+      csrfToken,
     }),
   });
   if (res.ok) {
@@ -55,7 +59,7 @@ export async function registerUser(username, password, email) {
       res,
       "Registration successful, redirecting to login..."
     );
-    return data.registerUser;
+    return data?.registerUser;
   }
   await handleError(
     res,
@@ -64,6 +68,10 @@ export async function registerUser(username, password, email) {
 }
 
 export async function loginUser(username, password) {
+  let csrfToken = localStorage.getItem("csrfToken");
+  if (!csrfToken) {
+    csrfToken = await generateCsrf();
+  }
   const res = await fetch("https://chatify-api.up.railway.app/auth/token", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -71,7 +79,7 @@ export async function loginUser(username, password) {
     body: JSON.stringify({
       username,
       password,
-      csrfToken: localStorage.getItem("CSRFtoken"),
+      csrfToken,
     }),
   });
 
@@ -80,12 +88,13 @@ export async function loginUser(username, password) {
       res,
       "Login successful, redirecting to chat..."
     );
-    if (data.token) {
-      sessionStorage.setItem("token", data.token);
+    if (data?.token) {
+      sessionStorage.setItem("jwtToken", data.token);
+      return data.token;
     } else {
-      console.warn("No token received in login response.");
+      console.warn("No JWT-token received in login response.");
+      return null;
     }
-    return data.loginUser;
   }
 
   await handleError(
@@ -96,8 +105,11 @@ export async function loginUser(username, password) {
 
 export function logoutUser() {
   try {
-    sessionStorage.removeItem("token");
-    console.log("Logout successful. Token removed from sessionStorage.");
+    sessionStorage.removeItem("jwtToken");
+    localStorage.removeItem("csrfToken");
+    console.log(
+      "Logout successful. Token removed from sessionStorage and csrfToken from localStorage."
+    );
     return { success: true, message: "Logout successful", code: 0 };
   } catch (err) {
     console.log("Logout failed. Could not remove token from session storage.");
@@ -111,13 +123,13 @@ export function logoutUser() {
 
 export async function postMessages(
   text,
-  conversationId = "314216cb-9ed3-4a57-93a1-e4b8b684ff15"
+  conversationId = "7a38be6e-8d30-4375-98a7-c0a28240111c"
 ) {
   const res = await fetch("https://chatify-api.up.railway.app/messages", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("jwtToken")}`,
     },
     body: JSON.stringify({
       text,
@@ -127,14 +139,14 @@ export async function postMessages(
 
   if (res.ok) {
     const data = await handleSuccess(res, "Messages sent successfully");
-    return data.postMessages;
+    return data?.postMessages;
   }
 
   await handleError(res, "Failed to send messages. Please try again.");
 }
 
 export async function getUserMessages(
-  conversationId = "314216cb-9ed3-4a57-93a1-e4b8b684ff15"
+  conversationId = "7a38be6e-8d30-4375-98a7-c0a28240111c"
 ) {
   const res = await fetch(
     `https://chatify-api.up.railway.app/messages?conversationId=${conversationId}`,
@@ -142,56 +154,52 @@ export async function getUserMessages(
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("jwtToken")}`,
       },
     }
   );
 
   if (res.ok) {
     const data = await handleSuccess(res, "Messages fetched successfully");
-
-    return data.messages || data || [];
+    return data?.messages || [];
   }
 
   await handleError(res, "Failed to fetch messages. Please try again.");
 }
 
-export async function getAllMessages() {
+export async function deleteMessages(messageId) {
   const res = await fetch(
-    `https://chatify-api.up.railway.app/messages
-    )}`,
+    `https://chatify-api.up.railway.app/messages/${messageId}`,
     {
-      method: "GET",
+      method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("jwtToken")}`,
       },
     }
   );
 
   if (res.ok) {
-    const data = await handleSuccess(res, "Messages fetched successfully");
-    return data.messages;
+    const data = await handleSuccess(res, "Message deleted successfully");
+    return data?.deleteMessage;
   }
 
-  await handleError(res, "Failed to fetch message. Please try again.");
+  await handleError(res, "Failed to delete message. Please try again.");
 }
 
-export async function getAllConversations() {
-  const res = await fetch("https://chatify-api.up.railway.app/messages", {
+export async function getAllMessages() {
+  const res = await fetch(`https://chatify-api.up.railway.app/messages`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("jwtToken")}`,
     },
   });
 
   if (res.ok) {
-    const data = await handleSuccess(res, "Conversations fetched successfully");
-    return data.conversations;
-  } else {
-    console.warn("No conversations received in response.");
+    const data = await handleSuccess(res, "Messages fetched successfully");
+    return data?.messages || [];
   }
 
-  await handleError(res, "Failed to fetch conversations. Please try again.");
+  await handleError(res, "Failed to fetch message. Please try again.");
 }

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { postMessages, getUserMessages } from "../../Services";
+import { useState, useEffect } from "react";
+import { postMessages, getUserMessages, deleteMessages } from "../../Services";
 import SideNav from "../sideNav/sideNav";
 
 function Chat() {
@@ -17,14 +17,15 @@ function Chat() {
       setSendMessage("");
       setSuccessSendMessage(true);
       setErrorSendMessage(null);
+      // Refresh messages after sending
+      await fetchMessages();
     } catch {
       setErrorSendMessage("Failed to send message. Please try again.");
       setSuccessSendMessage(false);
     }
   }
 
-  async function handleGetMessages(e) {
-    e.preventDefault();
+  async function fetchMessages() {
     try {
       const messages = await getUserMessages();
       setUserMessages(messages || []);
@@ -32,6 +33,32 @@ function Chat() {
       setErrorGetMessages(null);
     } catch {
       setErrorGetMessages("Failed to fetch messages. Please try again.");
+      setSuccessGetMessages(false);
+    }
+  }
+
+  async function handleGetMessages(e) {
+    e.preventDefault();
+    await fetchMessages();
+  }
+
+  // Fetch messages on component mount
+  useEffect(() => {
+    fetchMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleDeleteMessages(e) {
+    e.preventDefault();
+    try {
+      await deleteMessages(messageId);
+      setUserMessages((prevMessages) =>
+        prevMessages.filter((msg) => msg.id !== messageId)
+      );
+      setSuccessGetMessages(true);
+      setErrorGetMessages(null);
+    } catch {
+      setErrorGetMessages("Failed to delete message. Please try again.");
       setSuccessGetMessages(false);
     }
   }
@@ -57,22 +84,25 @@ function Chat() {
       <div className="user-messages-container">
         <h1>Messages</h1>
         <button onClick={handleGetMessages}>Show</button>
+        <br />
+        {successGetMessages && (
+          <p className="success">Messages fetched successfully!</p>
+        )}
+        {errorGetMessages && <p className="error">{errorGetMessages}</p>}
         <ul className="messages-list">
           {(userMessages || []).map((message, index) => (
-            <li
+            <div
               key={index}
               className={message.isUser ? "user-message" : "other-message"}
             >
               <p>{message.text}</p>
               <span>{new Date(message.createdAt).toLocaleString()}</span>
+              <br />
+              <button onClick={handleDeleteMessages}>Delete</button>
               <hr />
-            </li>
+            </div>
           ))}
         </ul>
-        {successGetMessages && (
-          <p className="success">Messages fetched successfully!</p>
-        )}
-        {errorGetMessages && <p className="error">{errorGetMessages}</p>}
       </div>
 
       <SideNav />

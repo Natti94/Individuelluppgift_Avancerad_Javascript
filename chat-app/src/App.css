@@ -39,7 +39,7 @@ h1 {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px;
+  padding: 30px;
   box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
   margin: 12px;
   display: flex;
@@ -50,6 +50,8 @@ h1 {
 
 .messages-list {
   margin-top: 16px;
+  text-align: left;
+  font-family: monospace;
 }
 
 .chat-container ul {
