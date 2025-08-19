@@ -17,7 +17,6 @@ async function handleSuccess(res, successMessage) {
 }
 
 export async function generateCsrf() {
-  // Always fetch a new CSRF token and set it in localStorage
   const res = await fetch("https://chatify-api.up.railway.app/csrf", {
     method: "PATCH",
     credentials: "include",
@@ -161,7 +160,7 @@ export async function getUserMessages(
 
   if (res.ok) {
     const data = await handleSuccess(res, "Messages fetched successfully");
-    return data?.messages || [];
+    return data?.messages || data || [];
   }
 
   await handleError(res, "Failed to fetch messages. Please try again.");
