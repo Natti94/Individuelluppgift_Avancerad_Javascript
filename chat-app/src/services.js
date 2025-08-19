@@ -11,6 +11,7 @@ async function handleError(res, defaultMessage) {
   console.error(`${errMessage}`, res.statusText);
   throw new Error(errMessage);
 }
+
 async function handleSuccess(res, successMessage) {
   console.log(`${successMessage} (Status ${res.status} ${res.statusText})`);
   return await res.json();
@@ -50,6 +51,7 @@ export async function registerUser(username, password, email) {
       username,
       password,
       email,
+      avatar: `https://i.pravatar.cc/200?u=${username}`,
       csrfToken,
     }),
   });
@@ -58,6 +60,11 @@ export async function registerUser(username, password, email) {
       res,
       "Registration successful, redirecting to login..."
     );
+
+    if (data?.registerUser?.avatar) {
+      sessionStorage.setItem("avatar", data.registerUser.avatar);
+    }
+
     return data?.registerUser;
   }
   await handleError(
@@ -89,6 +96,12 @@ export async function loginUser(username, password) {
     );
     if (data?.token) {
       sessionStorage.setItem("jwtToken", data.token);
+
+      const payload = parseJwt(data.token);
+      if (payload?.avatar) {
+        sessionStorage.setItem("avatar", payload.avatar);
+      }
+
       return data.token;
     } else {
       console.warn("No JWT-token received in login response.");
@@ -105,6 +118,7 @@ export async function loginUser(username, password) {
 export function logoutUser() {
   try {
     sessionStorage.removeItem("jwtToken");
+    sessionStorage.removeItem("avatar");
     localStorage.removeItem("csrfToken");
     console.log(
       "Logout successful. Token removed from sessionStorage and csrfToken from localStorage."
@@ -138,7 +152,14 @@ export async function postMessages(
 
   if (res.ok) {
     const data = await handleSuccess(res, "Messages sent successfully");
-    return data?.postMessages;
+    const messageId = data.latestMessage?.id;
+
+    localStorage.setItem("msgId", messageId);
+
+    return {
+      ...data,
+      latestMessage: { id: messageId },
+    };
   }
 
   await handleError(res, "Failed to send messages. Please try again.");
@@ -150,7 +171,6 @@ export async function getUserMessages(
   const res = await fetch(
     `https://chatify-api.up.railway.app/messages?conversationId=${conversationId}`,
     {
-      method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${sessionStorage.getItem("jwtToken")}`,
@@ -160,15 +180,24 @@ export async function getUserMessages(
 
   if (res.ok) {
     const data = await handleSuccess(res, "Messages fetched successfully");
-    return data?.messages || data || [];
+    const messages = data?.messages || data || [];
+
+    if (messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      localStorage.setItem("msgId", lastMsg.id);
+      localStorage.setItem("lastMessage", lastMsg.text || "");
+    }
+
+    return messages;
   }
 
   await handleError(res, "Failed to fetch messages. Please try again.");
 }
 
 export async function deleteMessages(messageId) {
+  const msgId = localStorage.getItem("msgId");
   const res = await fetch(
-    `https://chatify-api.up.railway.app/messages/${messageId}`,
+    `https://chatify-api.up.railway.app/messages/${msgId}`,
     {
       method: "DELETE",
       headers: {
@@ -201,4 +230,23 @@ export async function getAllMessages() {
   }
 
   await handleError(res, "Failed to fetch message. Please try again.");
+}
+
+function parseJwt(token) {
+  if (!token) return null;
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
 }

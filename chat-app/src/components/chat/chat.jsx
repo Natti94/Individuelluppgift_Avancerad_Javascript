@@ -3,15 +3,19 @@ import { postMessages, getUserMessages, deleteMessages } from "../../Services";
 import { mockMessages } from "./mock/mock";
 import SideNav from "../sideNav/sideNav";
 
-
 function parseJwt(token) {
   if (!token) return null;
   try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
     return JSON.parse(jsonPayload);
   } catch {
     return null;
@@ -22,12 +26,29 @@ function Chat() {
   const [sendMessage, setSendMessage] = useState("");
   const [userMessages, setUserMessages] = useState([]);
   const [error, setError] = useState(null);
-  // Get logged-in username from JWT in sessionStorage
+  const [botAvatar] = useState(() => {
+    let stored = sessionStorage.getItem("botAvatar");
+    if (stored) return stored;
+    const randomId = Math.floor(Math.random() * 70) + 1;
+    const url = `https://i.pravatar.cc/40?img=${randomId}`;
+    sessionStorage.setItem("botAvatar", url);
+    return url;
+  });
+
+  // Get logged-in username & avatar from JWT in sessionStorage
   let loggedInUsername = "You";
+  let loggedInAvatar =
+    sessionStorage.getItem("avatar") || "https://i.pravatar.cc/40";
+
   const jwt = sessionStorage.getItem("jwtToken");
   const jwtPayload = parseJwt(jwt);
-  if (jwtPayload && (jwtPayload.username || jwtPayload.user || jwtPayload.name)) {
-    loggedInUsername = (jwtPayload.username || jwtPayload.user || jwtPayload.name);
+  if (jwtPayload) {
+    loggedInUsername =
+      jwtPayload.username || jwtPayload.user || jwtPayload.name || "You";
+    if (jwtPayload.avatar) {
+      loggedInAvatar = jwtPayload.avatar;
+      sessionStorage.setItem("avatar", loggedInAvatar);
+    }
   }
 
   function sanitize(str) {
@@ -38,16 +59,37 @@ function Chat() {
     async function fetchMessages() {
       try {
         let messages = (await getUserMessages()) || mockMessages;
-        // Map messages: if from logged-in user, set username 'You' and isUser true, else 'SupportBot' and isUser false
+
+        const storedMsgId = localStorage.getItem("msgId");
+        const storedLastMsg = localStorage.getItem("lastMessage");
+        console.log(
+          "Latest stored msgId:",
+          storedMsgId,
+          "lastMessage:",
+          storedLastMsg
+        );
+
         const myUser = (loggedInUsername || "").trim().toLowerCase();
+
         messages = messages.map((msg) => {
           const msgUser = (msg.username || "").trim().toLowerCase();
           if (msgUser && msgUser === myUser) {
-            return { ...msg, username: "You", isUser: true };
+            return {
+              ...msg,
+              username: "You",
+              isUser: true,
+              avatar: loggedInAvatar,
+            };
           } else {
-            return { ...msg, username: "SupportBot", isUser: false };
+            return {
+              ...msg,
+              username: "SupportBot",
+              isUser: false,
+              avatar: msg.avatar || "https://i.pravatar.cc/40",
+            };
           }
         });
+
         setUserMessages(messages);
         setError(null);
       } catch {
@@ -56,7 +98,7 @@ function Chat() {
       }
     }
     fetchMessages();
-  }, [loggedInUsername]);
+  }, [loggedInUsername, loggedInAvatar]);
 
   async function handleSendMessage(e) {
     e.preventDefault();
@@ -70,6 +112,7 @@ function Chat() {
         createdAt: new Date().toISOString(),
         isUser: true,
         username: "You",
+        avatar: loggedInAvatar,
       };
       setUserMessages((prev) => [...prev, newMsg]);
       setSendMessage("");
@@ -81,6 +124,7 @@ function Chat() {
           createdAt: new Date().toISOString(),
           isUser: false,
           username: "SupportBot",
+          avatar: botAvatar,
         };
         setUserMessages((prev) => [...prev, botMsg]);
       }, 1000);
@@ -92,11 +136,10 @@ function Chat() {
     }
   }
 
-  // Delete message
-  async function handleDeleteMessage(id) {
+  async function handleDeleteMessage(msgId) {
     try {
-      await deleteMessages(id);
-      setUserMessages((prev) => prev.filter((m) => m.id !== id));
+      await deleteMessages(msgId);
+      setUserMessages((prev) => prev.filter((m) => m.id !== msgId));
     } catch {
       setError("Failed to delete message.");
     }
@@ -112,30 +155,50 @@ function Chat() {
             <p className="empty">No messages yet.</p>
           ) : (
             userMessages.map((message) => {
-              const msgUser = (message.username || "").trim().toLowerCase();
-              const myUser = (loggedInUsername || "").trim().toLowerCase();
-              const isUserMsg = msgUser && msgUser === myUser;
+              const isUser = message.isUser;
               return (
                 <div
                   key={message.id}
-                  className={
-                    isUserMsg
-                      ? "user-message message-bubble"
-                      : "other-message message-bubble"
-                  }
+                  className={`message-row ${isUser ? "user-row" : "bot-row"}`}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-end",
+                    marginBottom: 18,
+                  }}
                 >
-                  <p>{sanitize(message.text)}</p>
-                  <span className="timestamp">
-                    {new Date(message.createdAt).toLocaleTimeString()}
-                  </span>
-                  {isUserMsg && (
-                    <button
-                      className="delete-btn"
-                      onClick={() => handleDeleteMessage(message.id)}
-                    >
-                      ×
-                    </button>
-                  )}
+                  <img
+                    src={message.avatar}
+                    alt={isUser ? "Your avatar" : `${message.username} avatar`}
+                    className="avatar"
+                    style={{
+                      marginRight: isUser ? 0 : 12,
+                      marginLeft: isUser ? 12 : 0,
+                    }}
+                  />
+                  <div
+                    className={`message-bubble ${
+                      isUser ? "user-message" : "other-message"
+                    }`}
+                    style={{
+                      position: "relative",
+                      marginLeft: isUser ? "auto" : 0,
+                      marginRight: isUser ? 0 : "auto",
+                    }}
+                  >
+                    {isUser && (
+                      <button
+                        className="delete-btn"
+                        style={{ top: 6, right: 10, position: "absolute" }}
+                        onClick={() => handleDeleteMessage(message.id)}
+                      >
+                        ×
+                      </button>
+                    )}
+                    <p style={{ marginBottom: 4 }}>{sanitize(message.text)}</p>
+                    <span className="timestamp">
+                      {new Date(message.createdAt).toLocaleTimeString()}
+                    </span>
+                  </div>
                 </div>
               );
             })
@@ -153,11 +216,7 @@ function Chat() {
           />
           <button type="submit">Send</button>
         </form>
-        {error && (
-          <p className="error" style={{ marginTop: 8, textAlign: "center" }}>
-            {error}
-          </p>
-        )}
+        {error && <p className="error">{error}</p>}
       </div>
 
       <SideNav />
