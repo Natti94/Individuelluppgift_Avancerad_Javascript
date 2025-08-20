@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { postMessages, getUserMessages, deleteMessages } from "../../Services";
-import { mockMessages } from "./mock/mock";
+import { mockMessages } from "./mock/Mock";
 import SideNav from "../sideNav/sideNav";
 
 function parseJwt(token) {
@@ -35,56 +35,38 @@ function Chat() {
     return url;
   });
 
-  // Get logged-in username & avatar from JWT in sessionStorage
+  function sanitize(str) {
+    return str.replace(/<[^>]*>?/gm, "");
+  }
+
   let loggedInUsername = "You";
   let loggedInAvatar =
     sessionStorage.getItem("avatar") || "https://i.pravatar.cc/40";
 
   const jwt = sessionStorage.getItem("jwtToken");
   const jwtPayload = parseJwt(jwt);
-  if (jwtPayload) {
-    loggedInUsername =
-      jwtPayload.username || jwtPayload.user || jwtPayload.name || "You";
-    if (jwtPayload.avatar) {
-      loggedInAvatar = jwtPayload.avatar;
-      sessionStorage.setItem("avatar", loggedInAvatar);
-    }
-  }
-
-  function sanitize(str) {
-    return str.replace(/<[^>]*>?/gm, "");
-  }
+  const realUsername = (jwtPayload?.username || "").trim().toLowerCase();
 
   useEffect(() => {
     async function fetchMessages() {
       try {
-        let messages = (await getUserMessages()) || mockMessages;
-
-        const storedMsgId = localStorage.getItem("msgId");
-        const storedLastMsg = localStorage.getItem("lastMessage");
-        console.log(
-          "Latest stored msgId:",
-          storedMsgId,
-          "lastMessage:",
-          storedLastMsg
-        );
-
-        const myUser = (loggedInUsername || "").trim().toLowerCase();
-
+        let messages = await getUserMessages();
+        localStorage.getItem("msgId");
+        localStorage.getItem("lastMessage");
         messages = messages.map((msg) => {
           const msgUser = (msg.username || "").trim().toLowerCase();
-          if (msgUser && msgUser === myUser) {
+          if (msgUser === realUsername) {
             return {
               ...msg,
-              username: "You",
               isUser: true,
+              username: "You",
               avatar: loggedInAvatar,
             };
           } else {
             return {
               ...msg,
-              username: "SupportBot",
               isUser: false,
+              username: "SupportBot",
               avatar: msg.avatar || "https://i.pravatar.cc/40",
             };
           }
@@ -98,7 +80,7 @@ function Chat() {
       }
     }
     fetchMessages();
-  }, [loggedInUsername, loggedInAvatar]);
+  }, [loggedInUsername, loggedInAvatar, realUsername]);
 
   async function handleSendMessage(e) {
     e.preventDefault();
@@ -139,7 +121,18 @@ function Chat() {
   async function handleDeleteMessage(msgId) {
     try {
       await deleteMessages(msgId);
-      setUserMessages((prev) => prev.filter((m) => m.id !== msgId));
+      setUserMessages((prev) => {
+        const updated = prev.filter((m) => m.id !== msgId);
+        if (updated.length > 0) {
+          const lastMsg = updated[updated.length - 1];
+          localStorage.setItem("msgId", lastMsg.id);
+          localStorage.setItem("lastMessage", lastMsg.text || "");
+        } else {
+          localStorage.removeItem("msgId");
+          localStorage.removeItem("lastMessage");
+        }
+        return updated;
+      });
     } catch {
       setError("Failed to delete message.");
     }

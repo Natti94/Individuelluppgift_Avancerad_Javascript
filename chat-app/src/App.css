@@ -79,8 +79,6 @@
     color: #fff;
   }
 
-
-  /* Chat message row layout */
   .message-row {
     display: flex;
     align-items: flex-end;
@@ -298,7 +296,6 @@
 
   .chat-container li.other-message {
     background: #e5e7eb;
-    /* light gray */
     color: #111827;
     align-self: flex-start;
     border-bottom-left-radius: 4px;
@@ -312,7 +309,6 @@
     position: absolute;
     bottom: 0;
     right: -8px;
-    /* tail on the right */
     width: 0;
     height: 0;
     border-top: 8px solid var(--accent);
@@ -324,7 +320,6 @@
     position: absolute;
     bottom: 0;
     left: -8px;
-    /* tail on the left */
     width: 0;
     height: 0;
     border-top: 8px solid #e5e7eb;

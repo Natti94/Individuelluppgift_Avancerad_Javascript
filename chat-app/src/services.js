@@ -134,10 +134,7 @@ export function logoutUser() {
   }
 }
 
-export async function postMessages(
-  text,
-  conversationId = "7a38be6e-8d30-4375-98a7-c0a28240111c"
-) {
+export async function postMessages(text) {
   const res = await fetch("https://chatify-api.up.railway.app/messages", {
     method: "POST",
     headers: {
@@ -146,14 +143,12 @@ export async function postMessages(
     },
     body: JSON.stringify({
       text,
-      conversationId,
     }),
   });
 
   if (res.ok) {
     const data = await handleSuccess(res, "Messages sent successfully");
     const messageId = data.latestMessage?.id;
-
     localStorage.setItem("msgId", messageId);
 
     return {
@@ -165,18 +160,13 @@ export async function postMessages(
   await handleError(res, "Failed to send messages. Please try again.");
 }
 
-export async function getUserMessages(
-  conversationId = "7a38be6e-8d30-4375-98a7-c0a28240111c"
-) {
-  const res = await fetch(
-    `https://chatify-api.up.railway.app/messages?conversationId=${conversationId}`,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem("jwtToken")}`,
-      },
-    }
-  );
+export async function getUserMessages() {
+  const res = await fetch(`https://chatify-api.up.railway.app/messages`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${sessionStorage.getItem("jwtToken")}`,
+    },
+  });
 
   if (res.ok) {
     const data = await handleSuccess(res, "Messages fetched successfully");
@@ -185,7 +175,6 @@ export async function getUserMessages(
     if (messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
       localStorage.setItem("msgId", lastMsg.id);
-      localStorage.setItem("lastMessage", lastMsg.text || "");
     }
 
     return messages;
@@ -194,7 +183,7 @@ export async function getUserMessages(
   await handleError(res, "Failed to fetch messages. Please try again.");
 }
 
-export async function deleteMessages(messageId) {
+export async function deleteMessages() {
   const msgId = localStorage.getItem("msgId");
   const res = await fetch(
     `https://chatify-api.up.railway.app/messages/${msgId}`,
@@ -213,23 +202,6 @@ export async function deleteMessages(messageId) {
   }
 
   await handleError(res, "Failed to delete message. Please try again.");
-}
-
-export async function getAllMessages() {
-  const res = await fetch(`https://chatify-api.up.railway.app/messages`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${sessionStorage.getItem("jwtToken")}`,
-    },
-  });
-
-  if (res.ok) {
-    const data = await handleSuccess(res, "Messages fetched successfully");
-    return data?.messages || [];
-  }
-
-  await handleError(res, "Failed to fetch message. Please try again.");
 }
 
 function parseJwt(token) {
