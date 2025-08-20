@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { postMessages, getUserMessages, deleteMessages } from "../../Services";
 import { mockMessages } from "./mock/Mock";
 import SideNav from "../sideNav/sideNav";
+import DOMPurify from "dompurify";
 
+
+// KONTROLLERAR TOKEN ANNARS RETURNERAR NULL OM INGET SKICKAS
+// KONVERTERAR TILL BASE64 & AVKODAR TILL EN VANLIG STRÄNG
 function parseJwt(token) {
   if (!token) return null;
   try {
@@ -35,10 +39,6 @@ function Chat() {
     return url;
   });
 
-  function sanitize(str) {
-    return str.replace(/<[^>]*>?/gm, "");
-  }
-
   let loggedInUsername = "You";
   let loggedInAvatar =
     sessionStorage.getItem("avatar") || "https://i.pravatar.cc/40";
@@ -47,6 +47,10 @@ function Chat() {
   const jwtPayload = parseJwt(jwt);
   const realUsername = (jwtPayload?.username || "").trim().toLowerCase();
 
+
+  // VID INITIERING/MOUNT FETCHAR ALLA MEDDELANDE MED JWT
+  // HÄMTAR UT ALLA IDN
+  // 
   useEffect(() => {
     async function fetchMessages() {
       try {
@@ -118,6 +122,7 @@ function Chat() {
     }
   }
 
+  // DELETAR MEDDELANDEN UTIFRÅN ID
   async function handleDeleteMessage(msgId) {
     try {
       await deleteMessages(msgId);
@@ -136,6 +141,11 @@ function Chat() {
     } catch {
       setError("Failed to delete message.");
     }
+  }
+
+  // ESCAPAR ALLA HTML TAGS, BARA REN TEXT VISAS!
+  function sanitize(str) {
+    return DOMPurify.sanitize(str);
   }
 
   return (

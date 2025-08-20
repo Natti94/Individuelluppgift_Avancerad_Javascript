@@ -1,3 +1,5 @@
+// HJÄLPS KOD I CONSOLE
+
 async function handleError(res, defaultMessage) {
   let errMessage = `${defaultMessage} (Status ${res.status})`;
   try {
@@ -16,6 +18,8 @@ async function handleSuccess(res, successMessage) {
   console.log(`${successMessage} (Status ${res.status} ${res.statusText})`);
   return await res.json();
 }
+
+// GENERAR CSRF
 
 export async function generateCsrf() {
   const res = await fetch("https://chatify-api.up.railway.app/csrf", {
@@ -37,6 +41,8 @@ export async function generateCsrf() {
     "Security check failed. Please try again or refresh the page."
   );
 }
+
+// REGISTRER ANVÄNDARE MED CSRF
 
 export async function registerUser(username, password, email) {
   let csrfToken = localStorage.getItem("csrfToken");
@@ -72,6 +78,7 @@ export async function registerUser(username, password, email) {
     "Registration failed. The username or email may already be in use, or the input is invalid."
   );
 }
+
 
 export async function loginUser(username, password) {
   let csrfToken = localStorage.getItem("csrfToken");
@@ -118,10 +125,9 @@ export async function loginUser(username, password) {
 export function logoutUser() {
   try {
     sessionStorage.removeItem("jwtToken");
-    sessionStorage.removeItem("avatar");
     localStorage.removeItem("csrfToken");
     console.log(
-      "Logout successful. Token removed from sessionStorage and csrfToken from localStorage."
+      "Logout successful. jwtToken removed from sessionStorage and csrfToken from localStorage."
     );
     return { success: true, message: "Logout successful", code: 0 };
   } catch (err) {

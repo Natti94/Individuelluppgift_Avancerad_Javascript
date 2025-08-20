@@ -1,4 +1,4 @@
-// FÖR CHAT BOT OM JWT SKULLE BLI OGILTLIG
+// MOCK DATA FÖR CHAT OM JWT SKULLE BLI OGILTLIG
 
 export const mockMessages = [
   {

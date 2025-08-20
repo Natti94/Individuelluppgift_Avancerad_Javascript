@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { logoutUser } from "../../Services";
 
 function SideNav() {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
+  // LOGGAR UT ANVÄNDARE
+  // OMDIRIGERA TILL INLOGGNING DIREKT
+  // RENSAR ANVÄNDARDATA (csrfToken & jwtToken), SE SERVICES.JS (logoutUser)
   const handleLogout = async () => {
-    const result = await logoutUser();
-    if (result.success) {
-    }
+    logoutUser();
+    navigate("/login");
   };
 
   return (
