@@ -4,7 +4,6 @@ import { mockMessages } from "./mock/Mock";
 import SideNav from "../sideNav/sideNav";
 import DOMPurify from "dompurify";
 
-
 // KONTROLLERAR TOKEN ANNARS RETURNERAR NULL OM INGET SKICKAS
 // KONVERTERAR TILL BASE64 & AVKODAR TILL EN VANLIG STRÄNG
 function parseJwt(token) {
@@ -47,16 +46,13 @@ function Chat() {
   const jwtPayload = parseJwt(jwt);
   const realUsername = (jwtPayload?.username || "").trim().toLowerCase();
 
-
-  // VID INITIERING/MOUNT FETCHAR ALLA MEDDELANDE MED JWT
-  // HÄMTAR UT ALLA IDN
-  // 
+  // VID LOADING/MOUNT FETCHAR ALLA MEDDELANDE MED JWT
+  // HÄMTAR UT ALLA IDN TILL ME
+  //
   useEffect(() => {
     async function fetchMessages() {
       try {
         let messages = await getUserMessages();
-        localStorage.getItem("msgId");
-        localStorage.getItem("lastMessage");
         messages = messages.map((msg) => {
           const msgUser = (msg.username || "").trim().toLowerCase();
           if (msgUser === realUsername) {
@@ -92,8 +88,9 @@ function Chat() {
     if (!trimmed) return;
 
     try {
+      const tempId = Date.now().toString();
       const newMsg = {
-        id: Date.now().toString(),
+        id: tempId,
         text: trimmed,
         createdAt: new Date().toISOString(),
         isUser: true,
@@ -102,6 +99,21 @@ function Chat() {
       };
       setUserMessages((prev) => [...prev, newMsg]);
       setSendMessage("");
+
+      // LAGRAR ID FÖR ATT KUNNA TA BORT MEDDELANDE
+      // KUNDE INTE TA BORT MEDDELANDE OM JAG INTE REFRESHA TIDIGARE
+      setError(null);
+      const response = await postMessages(trimmed);
+      const realId = response?.latestMessage?.id;
+      if (realId) {
+        setUserMessages((prev) =>
+          prev.map((msg, idx) =>
+            idx === prev.length - 1 && msg.id === tempId
+              ? { ...msg, id: realId }
+              : msg
+          )
+        );
+      }
 
       setTimeout(() => {
         const botMsg = {
@@ -114,9 +126,6 @@ function Chat() {
         };
         setUserMessages((prev) => [...prev, botMsg]);
       }, 1000);
-
-      setError(null);
-      await postMessages(trimmed);
     } catch {
       setError("Failed to send message. Please try again.");
     }
@@ -126,18 +135,7 @@ function Chat() {
   async function handleDeleteMessage(msgId) {
     try {
       await deleteMessages(msgId);
-      setUserMessages((prev) => {
-        const updated = prev.filter((m) => m.id !== msgId);
-        if (updated.length > 0) {
-          const lastMsg = updated[updated.length - 1];
-          localStorage.setItem("msgId", lastMsg.id);
-          localStorage.setItem("lastMessage", lastMsg.text || "");
-        } else {
-          localStorage.removeItem("msgId");
-          localStorage.removeItem("lastMessage");
-        }
-        return updated;
-      });
+      setUserMessages((prev) => prev.filter((m) => m.id !== msgId));
     } catch {
       setError("Failed to delete message.");
     }
@@ -152,7 +150,6 @@ function Chat() {
     <div className="chat-page-root">
       <div className="chat-container">
         <h1>Chat</h1>
-
         <div className="messages-list">
           {userMessages.length === 0 ? (
             <p className="empty">No messages yet.</p>

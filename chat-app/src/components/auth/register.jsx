@@ -10,6 +10,7 @@ function Register() {
   const [error, setError] = useState(null);
 
   // GENERERA EN RANDOM AVATAR
+  // SÄTTER DEN AVATAR TILL ANVÄNDAREN
   const [avatar] = useState(() => {
     const randomId = Math.floor(Math.random() * 70) + 1;
     return `https://i.pravatar.cc/80?img=${randomId}`;
@@ -23,7 +24,7 @@ function Register() {
     e.preventDefault();
     try {
       const csrfToken = await generateCsrf();
-      await registerUser(username, password, email, avatar, csrfToken);
+  await registerUser(username, password, email, avatar, csrfToken);
       setSuccess("Registration successful, redirecting to login...");
       setTimeout(() => {
         navigate("/login");

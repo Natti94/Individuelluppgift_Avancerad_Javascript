@@ -42,10 +42,9 @@ export async function generateCsrf() {
   );
 }
 
-// REGISTRER ANVÄNDARE MED CSRF
+// REGISTRER ANVÄNDARE MED ANVÄNDARNAMN , LÖSENORD, EMAIL, AVATAR & CSRF
 
-export async function registerUser(username, password, email) {
-  let csrfToken = localStorage.getItem("csrfToken");
+export async function registerUser(username, password, email, avatar, csrfToken) {
   if (!csrfToken) {
     csrfToken = await generateCsrf();
   }
@@ -57,7 +56,7 @@ export async function registerUser(username, password, email) {
       username,
       password,
       email,
-      avatar: `https://i.pravatar.cc/200?u=${username}`,
+      avatar,
       csrfToken,
     }),
   });
@@ -78,7 +77,6 @@ export async function registerUser(username, password, email) {
     "Registration failed. The username or email may already be in use, or the input is invalid."
   );
 }
-
 
 export async function loginUser(username, password) {
   let csrfToken = localStorage.getItem("csrfToken");
@@ -155,8 +153,6 @@ export async function postMessages(text) {
   if (res.ok) {
     const data = await handleSuccess(res, "Messages sent successfully");
     const messageId = data.latestMessage?.id;
-    localStorage.setItem("msgId", messageId);
-
     return {
       ...data,
       latestMessage: { id: messageId },
@@ -177,22 +173,15 @@ export async function getUserMessages() {
   if (res.ok) {
     const data = await handleSuccess(res, "Messages fetched successfully");
     const messages = data?.messages || data || [];
-
-    if (messages.length > 0) {
-      const lastMsg = messages[messages.length - 1];
-      localStorage.setItem("msgId", lastMsg.id);
-    }
-
     return messages;
   }
 
   await handleError(res, "Failed to fetch messages. Please try again.");
 }
 
-export async function deleteMessages() {
-  const msgId = localStorage.getItem("msgId");
+export async function deleteMessages(userMsgId) {
   const res = await fetch(
-    `https://chatify-api.up.railway.app/messages/${msgId}`,
+    `https://chatify-api.up.railway.app/messages/${userMsgId}`,
     {
       method: "DELETE",
       headers: {
