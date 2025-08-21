@@ -4,7 +4,7 @@ import { mockMessages } from "./mock/Mock";
 import SideNav from "../sideNav/sideNav";
 import DOMPurify from "dompurify";
 
-// KONTROLLERAR TOKEN ANNARS RETURNERAR NULL OM INGET SKICKAS
+// KONTROLLERAR TOKEN ANNARS RETURNAR NULL OM INGET SKICKAS
 // KONVERTERAR TILL BASE64 & AVKODAR TILL EN VANLIG STRÄNG
 function parseJwt(token) {
   if (!token) return null;

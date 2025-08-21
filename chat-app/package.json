@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "dompurify": "^3.2.6",
+    "dotenv": "^17.2.1",
     "jsonwebtoken": "^9.0.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

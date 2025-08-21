@@ -3,12 +3,12 @@
 
 <head>
   <meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  img-src 'self' data: https://i.pravatar.cc/ https://picsum.photos/ https://%2A.picsum.photos/ https://freeimage.host/;
-  connect-src 'self' https://chatify-api.up.railway.app/;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com/;
-  script-src 'self';
-" />
+    default-src 'self';
+    img-src 'self' data: https://i.pravatar.cc/ https://picsum.photos/ https://*.picsum.photos/ https://freeimage.host/;
+    connect-src 'self' https://chatify-api.up.railway.app/ https://cdn.chatify.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com/;
+    script-src 'self' https://cdn.chatify.com;
+  " />
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,6 +18,18 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+
+  <!-- Chatify Live Chat -->
+  <script>
+    // Paste the Chatify snippet you copied from Admin here
+    // Example:
+    // (function(d,t) {
+    //   var BASE_URL="https://cdn.chatify.com";
+    //   var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    //   g.src=BASE_URL+"/widget.js";
+    //   s.parentNode.insertBefore(g,s);
+    // }(document,"script"));
+  </script>
 </body>
 
 </html>
