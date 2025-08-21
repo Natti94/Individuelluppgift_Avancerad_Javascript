@@ -4,6 +4,7 @@ import Login from "./components/auth/login";
 import Chat from "./components/chat/chat";
 import "./App.css";
 
+// HELT ENKELT NAVIGERING MED REACT ROUTER I HUVUDKOMPONENTEN
 function App() {
   return (
     <div className="App">

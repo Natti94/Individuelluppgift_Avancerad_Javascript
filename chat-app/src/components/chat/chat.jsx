@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { postMessages, getUserMessages, deleteMessages } from "../../services";
-import { mockMessages } from "./mocks/mocks";
+import { mockMessages } from "../../components/chat/mocks/mocks";
 import SideNav from "../nav/nav"
 import DOMPurify from "dompurify";
 
