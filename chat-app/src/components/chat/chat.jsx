@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { postMessages, getUserMessages, deleteMessages } from "../../Services"
+import { postMessages, getUserMessages, deleteMessages } from "../../Services";
 import { mockMessages } from "./mocks/Mocks";
-import SideNav from "../SideNav/SideNav";
+import SideNav from "../nav/SideNav";
 import DOMPurify from "dompurify";
 
 // KONTROLLERAR TOKEN ANNARS RETURNAR NULL OM INGET SKICKAS
