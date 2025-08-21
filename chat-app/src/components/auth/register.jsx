@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { generateCsrf, registerUser } from "../../Services";
+import { generateCsrf, registerUser } from "../../services";
 import { Link, useNavigate } from "react-router-dom";
 
 function Register() {

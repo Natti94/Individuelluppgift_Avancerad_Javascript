@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { logoutUser } from "../../Services";
+import { logoutUser } from "../../services";
 
 function SideNav() {
   const [open, setOpen] = useState(false);
