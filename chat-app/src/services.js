@@ -1,4 +1,4 @@
-// HANTERAR FEL VID FETCH OCH LOGGAR FELMEDDELANDE
+// HANTERAR FEL VID FETCH OCH LOGGAR FELMEDDELANDE I CONSOLE
 async function handleError(res, defaultMessage) {
   let errMessage = `${defaultMessage} (Status ${res.status})`;
   try {
@@ -13,7 +13,7 @@ async function handleError(res, defaultMessage) {
   throw new Error(errMessage);
 }
 
-// HANTERAR LYCKAD FETCH OCH LOGGAR MEDDELANDE
+// HANTERAR LYCKAD FETCH OCH LOGGAR MEDDELANDE I CONSOLE
 async function handleSuccess(res, successMessage) {
   console.log(`${successMessage} (Status ${res.status} ${res.statusText})`);
   return await res.json();

@@ -101,7 +101,7 @@ function Chat() {
       };
       setUserMessages((prev) => [...prev, newMsg]);
       setSendMessage("");
-      
+
       setError(null);
       const response = await postMessages(trimmed);
       const realId = response?.latestMessage?.id;
