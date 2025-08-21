@@ -10,21 +10,22 @@ function Register() {
   const [error, setError] = useState(null);
 
   // GENERERA EN RANDOM AVATAR
-  // SÄTTER DEN AVATAR TILL ANVÄNDAREN
+  // SÄTTER DEN AVATAR TILL ANVÄNDAREN EFTER REGISTRERING
+  // SE SERVICES.JS - registerUser & loginUser
   const [avatar] = useState(() => {
     const randomId = Math.floor(Math.random() * 70) + 1;
     return `https://i.pravatar.cc/80?img=${randomId}`;
   });
   const navigate = useNavigate();
 
-  // REGISTRERAR ANVÄNDARE MED USERNAME, PASSWORD, EMAIL, AVATAR & CSRF
+  // REGISTRERAR ANVÄNDARE MED USERNAME, PASSWORD, EMAIL, AVATAR & csrfToken
   // OMDIRIGERAR SEDAN TILL LOGIN MED TIMEOUT FÖR ATT VISA SUCCESS
   // ANNARS VISAR DET ERROR
   async function handleRegister(e) {
     e.preventDefault();
     try {
       const csrfToken = await generateCsrf();
-  await registerUser(username, password, email, avatar, csrfToken);
+      await registerUser(username, password, email, avatar, csrfToken);
       setSuccess("Registration successful, redirecting to login...");
       setTimeout(() => {
         navigate("/login");

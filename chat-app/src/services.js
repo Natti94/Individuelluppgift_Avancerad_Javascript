@@ -1,5 +1,4 @@
-// HJÄLPS KOD I CONSOLE
-
+// HANTERAR FEL VID FETCH OCH LOGGAR FELMEDDELANDE
 async function handleError(res, defaultMessage) {
   let errMessage = `${defaultMessage} (Status ${res.status})`;
   try {
@@ -14,13 +13,13 @@ async function handleError(res, defaultMessage) {
   throw new Error(errMessage);
 }
 
+// HANTERAR LYCKAD FETCH OCH LOGGAR MEDDELANDE
 async function handleSuccess(res, successMessage) {
   console.log(`${successMessage} (Status ${res.status} ${res.statusText})`);
   return await res.json();
 }
 
-// GENERAR CSRF
-
+// GENERAR CSRF-TOKEN OCH LAGRAR I localStorage
 export async function generateCsrf() {
   const res = await fetch("https://chatify-api.up.railway.app/csrf", {
     method: "PATCH",
@@ -42,9 +41,14 @@ export async function generateCsrf() {
   );
 }
 
-// REGISTRER ANVÄNDARE MED ANVÄNDARNAMN , LÖSENORD, EMAIL, AVATAR & CSRF
-
-export async function registerUser(username, password, email, avatar, csrfToken) {
+// REGISTRERAR ANVÄNDARE MED ANVÄNDARNAMN, LÖSENORD, EMAIL, AVATAR & CSRF
+export async function registerUser(
+  username,
+  password,
+  email,
+  avatar,
+  csrfToken
+) {
   if (!csrfToken) {
     csrfToken = await generateCsrf();
   }
@@ -78,6 +82,8 @@ export async function registerUser(username, password, email, avatar, csrfToken)
   );
 }
 
+// LOGGAR IN ANVÄNDARE OCH HÄMTAR AVATAR VIA DECODAD jwtToken
+// LAGRAR DÄREFTER I sessionStorage
 export async function loginUser(username, password) {
   let csrfToken = localStorage.getItem("csrfToken");
   if (!csrfToken) {
@@ -103,7 +109,18 @@ export async function loginUser(username, password) {
       sessionStorage.setItem("jwtToken", data.token);
 
       const payload = parseJwt(data.token);
-      if (payload?.avatar) {
+      if (payload?.userId) {
+        try {
+          const userData = await getUserById(payload.userId);
+          if (userData?.avatar) {
+            sessionStorage.setItem("avatar", userData.avatar);
+          }
+        } catch {
+          if (payload?.avatar) {
+            sessionStorage.setItem("avatar", payload.avatar);
+          }
+        }
+      } else if (payload?.avatar) {
         sessionStorage.setItem("avatar", payload.avatar);
       }
 
@@ -120,10 +137,28 @@ export async function loginUser(username, password) {
   );
 }
 
+// HÄMTAR ANVÄNDARE MED USERID (EFTER LOGIN)
+export async function getUserById(userId) {
+  const res = await fetch(
+    `https://chatify-api.up.railway.app/users/${userId}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem("jwtToken")}`,
+      },
+    }
+  );
+  if (res.ok) {
+    return await res.json();
+  }
+  await handleError(res, "Failed to fetch user details.");
+}
+
+// LOGGAR UT ANVÄNDARE OCH TAR BORT csrfToken och jwtToken
 export function logoutUser() {
   try {
-    sessionStorage.removeItem("jwtToken");
     localStorage.removeItem("csrfToken");
+    sessionStorage.removeItem("jwtToken");
     console.log(
       "Logout successful. jwtToken removed from sessionStorage and csrfToken from localStorage."
     );
@@ -138,6 +173,7 @@ export function logoutUser() {
   }
 }
 
+// SKICKAR NYTT MEDDELANDE TILL API:et MED jwtToken
 export async function postMessages(text) {
   const res = await fetch("https://chatify-api.up.railway.app/messages", {
     method: "POST",
@@ -162,6 +198,7 @@ export async function postMessages(text) {
   await handleError(res, "Failed to send messages. Please try again.");
 }
 
+// HÄMTAR ALLA MEDDELANDEN FÖR INLOGGAD ANVÄNDARE
 export async function getUserMessages() {
   const res = await fetch(`https://chatify-api.up.railway.app/messages`, {
     headers: {
@@ -179,6 +216,7 @@ export async function getUserMessages() {
   await handleError(res, "Failed to fetch messages. Please try again.");
 }
 
+// TAR BORT MEDDELANDE MED userId
 export async function deleteMessages(userMsgId) {
   const res = await fetch(
     `https://chatify-api.up.railway.app/messages/${userMsgId}`,
@@ -199,6 +237,7 @@ export async function deleteMessages(userMsgId) {
   await handleError(res, "Failed to delete message. Please try again.");
 }
 
+// PARSAR JWT-TOKEN OCH RETURNAR PAYLOAD
 function parseJwt(token) {
   if (!token) return null;
   try {

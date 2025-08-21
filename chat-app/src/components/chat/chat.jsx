@@ -46,9 +46,9 @@ function Chat() {
   const jwtPayload = parseJwt(jwt);
   const realUsername = (jwtPayload?.username || "").trim().toLowerCase();
 
-  // VID LOADING/MOUNT FETCHAR ALLA MEDDELANDE MED JWT
-  // HÄMTAR UT ALLA IDN TILL ME
-  //
+  // VID LOADING/MOUNT FETCHAR ALLA MEDDELANDE MED jwtToken
+  // HÄMTAR UT ALLA MEDDELANDEN
+  // SE SERVICES.JS - getUserMessages
   useEffect(() => {
     async function fetchMessages() {
       try {
@@ -82,6 +82,8 @@ function Chat() {
     fetchMessages();
   }, [loggedInUsername, loggedInAvatar, realUsername]);
 
+  // UPPDATERAR MEDDELANDES ID EFTER ATT DET SPARATS I API:et
+  // SKICKAR MEDDELANDE, LÄGGER TILL I LISTAN OCH HANTERAR API-SVAR
   async function handleSendMessage(e) {
     e.preventDefault();
     const trimmed = sendMessage.trim();
@@ -99,9 +101,7 @@ function Chat() {
       };
       setUserMessages((prev) => [...prev, newMsg]);
       setSendMessage("");
-
-      // LAGRAR ID FÖR ATT KUNNA TA BORT MEDDELANDE
-      // KUNDE INTE TA BORT MEDDELANDE OM JAG INTE REFRESHA TIDIGARE
+      
       setError(null);
       const response = await postMessages(trimmed);
       const realId = response?.latestMessage?.id;
@@ -131,7 +131,8 @@ function Chat() {
     }
   }
 
-  // DELETAR MEDDELANDEN UTIFRÅN ID
+  // DELETAR MEDDELANDEN MED msgId
+  // SE SERVICES.JS - deleteMessages
   async function handleDeleteMessage(msgId) {
     try {
       await deleteMessages(msgId);
