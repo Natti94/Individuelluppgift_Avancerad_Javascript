@@ -1,5 +1,4 @@
 // MOCK DATA FÖR CHAT OM JWT SKULLE BLI OGILTLIG/EJ GENERERA
-
 export const mockMessages = [
   {
     id: "1",
