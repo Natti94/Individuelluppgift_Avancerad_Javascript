@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Register from "./components/auth/Register";
-import Login from "./components/auth/Login";
-import Chat from "./components/chat/Chat";
+import Register from "../src/components/auth/Register";
+import Login from "../src/components/auth/Login";
+import Chat from "../src/components/chat/Chat";
 import "./App.css";
 
 // HELT ENKELT NAVIGERING MED REACT ROUTER I HUVUDKOMPONENTEN
